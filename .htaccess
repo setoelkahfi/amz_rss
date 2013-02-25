@@ -1,0 +1,4 @@
+RewriteEngine on
+RewriteBase /amazon/
+RewriteCond $1 !^(index\.php|images|assets|css|js|robots\.txt)
+RewriteRule ^(.*)$ index.php/$1 [L]
