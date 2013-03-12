@@ -3,8 +3,10 @@
 /**
  * User controller
  *
- * All information about user.
+ * Handle user object. Use to login, logout, register and other task related to users.
+ * Restrict only for logged users.
  *
+ * @author Seto El Kahfi
  */
 class Users extends CI_Controller {
 
@@ -16,6 +18,7 @@ class Users extends CI_Controller {
 	public function __construct()
 	{
 		parent::__construct();
+		
 		$this->load->model('m_users');
 	}
 	
@@ -25,7 +28,15 @@ class Users extends CI_Controller {
 	 */
 	public function index( $id = NULL, $name  = NULL)
 	{
-		$this->output->enable_profiler(true);
+		/**
+		 * Important!! 
+		 * Since we use CI session class, we check the user by his username.
+		 */
+		if ( ! $this->session->userdata('user_name'))
+		{
+			$this->session->set_flashdata('msg','<div class="alert alert-error flash">You must login or register first to use this service</div>');
+			redirect('/users/login/');
+		}
 		if (isset($id))
 		{
 			$data['items'] = $this->m_users->get_users($id);
@@ -34,291 +45,548 @@ class Users extends CI_Controller {
 				//show_404('page');
 			}
 			$data['page'] = 'users/user';
-			$this->load->view('users/template',$data);
+			$this->load->view('template',$data);
 			
 		}
 		else
 		{
-			$data['title'] = 'Your Name';
+			$data['title'] = 'Manage Your Data';
 			$data['page'] = 'users/index';
-			$this->load->view('users/template',$data);
+			$this->load->view('template',$data);
 		}
 	}
 	
 	/**
-	 * Profil page admin
+	 * Logout user
 	 *
+	 * Destroy all session data.
 	 */
-	public function profile()
+	public function logout()
 	{
-		$data['title'] = 'My Profile';
-		$data['page'] = 'backend/profile';
-		$this->load->view('backend/template',$data);
+		$array = array(
+			'user_name' => '',
+			'user_id' => '',
+			'user_level' => '',
+			'user_password' => '',
+		);
+		$this->session->unset_userdata($array);
+		$this->session->set_flashdata('msg','<div class="alert alert-success flash">Youre now log-out!</div>');
+		redirect('/');
 	}
+			
 	/**
-	 * Add new search index
-	 *
-	 * @param string action to be taken
-	 * @param optional search index value to be edited
+	 * Get the login form
 	 */
-	public function search_index($action = NULL, $id = NULL)
+	function login()
 	{
-		if ($action == NULL)
+		if ($this->session->userdata('user_name'))
 		{
-			$data['items'] = $this->m_backend->get_search_index();
-			$data['title'] = 'Search Index';
-			$data['page'] = 'backend/search_index';
-			$this->load->view('backend/template',$data);
+			redirect('/users/');
 		}
-		else
-		{
-			$this->output->enable_profiler(TRUE);
-			switch ($action)
-			{
-				case 'add' :
-					$data['title'] = 'Search Index -> Add';
-					$data['page'] = 'backend/search_index_add';
-					$this->load->view('backend/template',$data);
-					break;
-				case 'edit' :
-					if ( ! $id)
-					{
-						$this->session->set_flashdata('msg', '<div class="alert alert-warning flash">Upss, error occured! You must fillin\' the name.</div>');
-						redirect('backend/search-index/');
-					}
-					if ($id == 'save')
-					{
-						$name = $this->input->post('name');
-						$name_ = $this->input->post('name_');
-						if ( empty($name))
-						{
-							$this->session->set_flashdata('msg', '<div class="alert alert-warning flash">Upss, error occured! You must fillin\' the name.</div>');
-							redirect('backend/search-index/edit/'.$name_);
-						}
-						$CA	= $this->input->post('CA');
-						$CN	= $this->input->post('CN');
-						$DE	= $this->input->post('DE');
-						$ES	= $this->input->post('ES');
-						$FR	= $this->input->post('FR');
-						$IT	= $this->input->post('IT');
-						$JP	= $this->input->post('JP');
-						$UK	= $this->input->post('UK');
-						$US = $this->input->post('US');
-						//$name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US
-						$status = $this->m_backend->update_search_index($name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US) ? 'true' : 'false';
-						$msg = ($status) ? '<div class="alert alert-success flash">Successfully updated!</div>' : '<div class="alert alert-warning flash">Upss, error occured!</div>';
-						
-						$this->session->set_flashdata('msg', $msg);
-						redirect('backend/search-index/');
-					}
-					$data['items'] = $this->m_backend->get_search_index($id);
-					$data['title'] = 'Search Index -> Edit';
-					$data['page'] = 'backend/search_index_edit';
-					$this->load->view('backend/template',$data);
-					break;
-				case 'save' :
-					$name = $this->input->post('name');
-					if ( empty($name))
-					{
-						$this->session->set_flashdata('msg', '<div class="alert alert-warning flash">Upss, error occured! You must fillin\' the name.</div>');
-						redirect('backend/search-index/add');
-					}
-					$CA	= $this->input->post('CA');
-					$CN	= $this->input->post('CN');
-					$DE	= $this->input->post('DE');
-					$ES	= $this->input->post('ES');
-					$FR	= $this->input->post('FR');
-					$IT	= $this->input->post('IT');
-					$JP	= $this->input->post('JP');
-					$UK	= $this->input->post('UK');
-					$US = $this->input->post('US');
-					//$name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US
-					$status = $this->m_backend->save_search_index($name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US) ? 'true' : 'false';
-					$msg = ($status) ? '<div class="alert alert-success flash">Successfully saved!</div>' : '<div class="alert alert-warning flash">Upss, error occured!</div>';
-					
-					$this->session->set_flashdata('msg', $msg);
-					redirect('backend/search-index/add');
-					break;
-			}
-		}
+		$data['page'] = 'users/login';
+		$this->load->view('template',$data);
 	}
 	
 	/**
-	 * Add new search index
-	 *
-	 * @param string action to be taken
-	 * @param optional search index value to be edited
+	 * Do login
 	 */
-	public function browse_node_id($action = NULL, $id = NULL)
+	function login_do()
 	{
-		if ($action == NULL)
+		//$this->output->enable_profiler(true);
+		// The validation
+		$error = array();
+		if (empty($_POST['inputEmail'])) 
 		{
-			$data['items'] = $this->m_backend->get_browse_node_id();
-			$data['title'] = 'Browse Node Id';
-			$data['page'] = 'backend/browse_node_id';
-			$this->load->view('backend/template',$data);
+			$response->error['errEmail'] = "Id Peserta belum disii.";
+		} 
+		else 
+		{
+			$user_id = $_POST['inputEmail'];
 		}
-		else
+		if (empty($_POST['inputPassword'])) 
 		{
-			$this->output->enable_profiler(TRUE);
-			switch ($action)
-			{
-				case 'add' :
-					$data['title'] = 'Browse Node Id -> Add';
-					$data['page'] = 'backend/browse_node_id_add';
-					$this->load->view('backend/template',$data);
-					break;
-				case 'edit' :
-					if ( ! $id)
-					{
-						$this->session->set_flashdata('msg', '<div class="alert alert-warning flash">Upss, error occured! You must fillin\' the name.</div>');
-						redirect('backend/browse_node_id/');
-					}
-					if ($id == 'save')
-					{
-						$name = $this->input->post('name');
-						$name_ = $this->input->post('name_');
-						if ( empty($name))
-						{
-							$this->session->set_flashdata('msg', '<div class="alert alert-warning flash">Upss, error occured! You must fillin\' the name.</div>');
-							redirect('backend/browse_node_id/edit/'.$name_);
-						}
-						$CA	= $this->input->post('CA');
-						$CN	= $this->input->post('CN');
-						$DE	= $this->input->post('DE');
-						$ES	= $this->input->post('ES');
-						$FR	= $this->input->post('FR');
-						$IT	= $this->input->post('IT');
-						$JP	= $this->input->post('JP');
-						$UK	= $this->input->post('UK');
-						$US = $this->input->post('US');
-						//$name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US
-						$status = $this->m_backend->update_search_index($name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US) ? 'true' : 'false';
-						$msg = ($status) ? '<div class="alert alert-success flash">Successfully updated!</div>' : '<div class="alert alert-warning flash">Upss, error occured!</div>';
-						
-						$this->session->set_flashdata('msg', $msg);
-						redirect('backend/browse_node_id/');
-					}
-					$data['items'] = $this->m_backend->get_search_index($id);
-					$data['title'] = 'Browse Node Id -> Edit';
-					$data['page'] = 'backend/browse_node_id_edit';
-					$this->load->view('backend/template',$data);
-					break;
-				case 'save' :
-					$name = $this->input->post('name');
-					if ( empty($name))
-					{
-						$this->session->set_flashdata('msg', '<div class="alert alert-warning flash">Upss, error occured! You must fillin\' the name.</div>');
-						redirect('backend/browse_node_id/add');
-					}
-					$CA	= $this->input->post('CA');
-					$CN	= $this->input->post('CN');
-					$DE	= $this->input->post('DE');
-					$ES	= $this->input->post('ES');
-					$FR	= $this->input->post('FR');
-					$IT	= $this->input->post('IT');
-					$JP	= $this->input->post('JP');
-					$UK	= $this->input->post('UK');
-					$US = $this->input->post('US');
-					//$name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US
-					$status = $this->m_backend->save_browse_node_id($name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US) ? 'true' : 'false';
-					$msg = ($status) ? '<div class="alert alert-success flash">Successfully saved!</div>' : '<div class="alert alert-warning flash">Upss, error occured!</div>';
-					
-					$this->session->set_flashdata('msg', $msg);
-					redirect('backend/browse_node_id/add');
-					break;
+			$response->error['errPassword'] = "Password belum diisi.";
+		} 
+		else 
+		{
+			$pass = md5($_POST['inputPassword']);
+		}
+		//echo "Email $id_peserta </br>";
+		//echo "Passs $pass";
+		// Do it if there's no error
+		if (empty($response->error)) 
+		{
+			//echo $query;
+			$query = $this->m_users->login($user_id, $pass);
+			if ($query->num_rows() > 0) 
+			{ 
+				// Store the session variabel
+				$data = $query->row();
+				$this->session->set_userdata('user_id', $data->user_id);
+				$this->session->set_userdata('user_password', $data->user_password);
+				$this->session->set_userdata('user_name', $data->user_name);
+				$this->session->set_userdata('user_level', $data->user_level);
+				
+				// Set the result response
+				$response->status = true;
+				$response->user_name = $data->user_name;
+			} 
+			else 
+			{ // No
+				$response->error['errOther'] = "Password atau e-mail Anda salah. Atau Anda belum mengkonfirmasi e-mail Anda.";
+				$response->status = false;
 			}
+		} 
+		else 
+		{
+			$response->status = false;
 		}
+
+		//out put result
+		echo json_encode($response);
 	}
 	
 	/**
-	 * Manage users
-	 *
-	 * @param string action to be taken
-	 * @param optional search index value to be edited
+	 * Form register
 	 */
-	public function manage_users($action = NULL, $id = NULL)
+	function register()
 	{
-		if ($action == NULL)
+		if ($this->session->userdata('user_name'))
 		{
-			$data['items'] = $this->m_backend->get_users();
-			$data['title'] = 'Manage Users';
-			$data['page'] = 'backend/users';
-			$this->load->view('backend/template',$data);
+			redirect('/users/');
+		}
+		$data['page'] = 'users/register';
+		$this->load->view('template',$data);
+	}
+	
+	/**
+	 * Register new user
+	 */
+	function register_do() 
+	{
+		// The validation
+		$error = array();
+		if (empty($_POST['inputName'])) 
+		{
+			$response->error['errName'] = 'Name required.';
+		} 
+		else 
+		{
+			$name = $_POST['inputName'];
+		}
+		if (empty($_POST['inputEmail'])) 
+		{
+			$response->error['errEmail'] = 'E-mail required.';
+		} 
+		else 
+		{
+			//regular expression for email validation
+			if (preg_match("/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/",$_POST['inputEmail'])) {
+				$email = $_POST['inputEmail'];
+			} else {
+				$error['errEmail'] = 'Please use your valid e-mail.';
+			}
+		}
+		if (empty($_POST['inputPassword'])) 
+		{
+			$response->error['errPassword'] = 'Password required.';
+		} 
+		else 
+		{
+			$pass = md5($_POST['inputPassword']);
+		}
+		if (empty($_POST['inputPasswordRe'])) 
+		{
+			$response->error['errPasswordRe'] = 'Retype Password.';
+		} 
+		else 
+		{
+			$pass = md5($_POST['inputPasswordRe']);
+		}
+		if ($_POST['inputPassword'] !== $_POST['inputPasswordRe'])
+		{
+			$response->error['errPasswordMatch'] = 'Password didn\'t match.';
+		}
+		//echo "Email $id_peserta </br>";
+		//echo "Passs $pass";
+		// Do it if there's no error
+		if (empty($response->error)) 
+		{
+			// Is the user not confirm his/her email yet?
+			$query = "SELECT user_email FROM users
+						WHERE user_email = '{$email}'";
+			
+			$result_query = mysqli_query($dbc,$query);
+			// E-mail already registered
+			if (mysqli_num_rows($result_query) == 1) 
+			{ 
+				$response->err['errEmailRegistered'] = 'E-mail already registered, use another one.';
+				$response->status = false;
+			} 
+			else 
+			{ // New email
+				$activation = md5(uniqid(rand(), true));
+				$query = "INSERT INTO users(user_email, user_password, user_name, confirm) 
+						VALUES('{$email}','{$pass}','{$name}','{$activation}')";
+				//echo $query;
+				$result_query = mysqli_query($dbc,$query);
+				if ($result_query)
+				{
+					$response->status = true;
+				}
+				else
+				{
+					$response->error['errOther'] = 'Upss, sorry, register failed. Technically error.';
+					$response->status = false;
+				}
+			}
+		} 
+		else 
+		{
+			$response->status = false;
+		}
+
+		//out put result
+		echo json_encode($response);
+	}
+	
+	/**
+	 * Ajax load page
+	 *
+	 * Call from ajax-request at users page. Use for display logs, tracking ids and API keys
+	 * Each menu called by ajax request
+	 * Each menu group for their CRUD functionality
+	 */
+	 
+	/**
+	 * Logs activity
+	 *
+	 * A read only menu, there's no CRUD activity
+	 */
+	public function logs()
+	{
+		echo '<div class="row-fluid">
+	<div class="span3">
+		<h4>username.</h4>
+		<div class="thumbnail well">Container to hold the user photo</div> 
+	</div><div class="span3">
+		<h4>username.</h4>
+		<div class="thumbnail well">Container to hold the user photo</div> 
+	</div>
+	<div class="span3">
+		<h4>username.</h4>
+		<div class="thumbnail well">Container to hold the user photo</div> 
+	</div>
+	<div class="span3">
+		<h4>username.</h4>
+		<div class="thumbnail well">Container to hold the user photo</div> 
+	</div>
+</div>';
+	}
+	
+	/**
+	 * Tracking Ids Menu Handle
+	 *
+	 * Crud menu for tracking Ids of the user, including add new, edit, update and delete
+	 * All called by ajax request
+	 */
+	 
+	/**
+	 * List all tracking Ids
+	 */
+	public function tracking_ids()
+	{
+		$query = $this->m_users->get_tracking_id();
+		
+		$content = '<p class="lead">Tracking Ids<a href="#add-tracking-id" class="btn btn-danger pull-right modal-trigger">Add Tracking Id</a></p>';
+		if ($query->num_rows() > 0)
+		{
+			$content .= '<table class="table"><thead><tr><th>No</th><th>Tracking Id</th><th>Locale</th><th>Action</th></tr></thead><tbody>';
+			$i =1;
+			foreach ($query->result() as $item)
+			{
+				$content .= '<tr><td>'.$i.'</td><td>'.$item->tracking_id.'</td><td>'.$item->locale.'</td><td><a  href="#edit-tracking-id-'.$item->id.'" class="modal-trigger"><i class="icon icon-pencil"></i></a>&nbsp;&nbsp;<a href="#delete-tracking-id-'.$item->id.'" class="delete-trigger"><i class="icon icon-remove"></i></a></td></tr>';
+				$i++;
+			}
+			$content .= '</tbody></table>';
+		}
+		echo $content;
+	}
+	
+	/**
+	 * From add new tracking Id
+	 */
+	public function add_tracking_id()
+	{
+		$query = $this->m_users->get_locale();
+		
+		$content = '<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon icon-remove"></i></button>
+			<h3 id="form-title">Add New Tracking Id</h3>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal add-new" id="save-tracking-id">
+					<div class="control-group">
+						<label class="control-label" for="inputTrackingId">Tracking Id</label>
+						<div class="controls">
+							<input type="text" name="inputTrackingId" placeholder="Tracking Id">
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="inputLocale">Locale</label>
+						<div class="controls">
+							<select name="inputLocale">';
+		if ($query->num_rows() > 0)
+		{
+			foreach ($query->result() as $item)
+			{
+				@$option .= '<option value="'.$item->locale.'">'.$item->country.'</option>';
+			}
+			$content .= $option;
+		}
+		$content .= '</select>
+						</div>
+					</div>
+					<p class="ajax-loader">
+						<img src="assets/img/ajax-loader-strip.gif">
+					</p>
+					<div class="form-actions">
+						<button type="submit" class="btn btn-primary btn-login">Save</button>
+					</div>
+				</form>
+			</div>';
+		echo $content;
+	}
+	
+	/**
+	 * From edit new tracking Id
+	 */
+	public function edit_tracking_id($id)
+	{
+		$query = $this->m_users->get_tracking_id($id);
+		$query2 = $this->m_users->get_locale();
+		
+		$content = '<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon icon-remove"></i></button>
+			<h3 id="form-title">Edit Tracking Id</h3>
+			</div>
+			<div class="modal-body">';
+		
+		if ($query->num_rows() < 1)
+		{
+			$content .='Sorry, no record found.';
 		}
 		else
 		{
-			$this->output->enable_profiler(TRUE);
-			switch ($action)
+			$item = $query->row();
+			$content .=	'<form class="form-horizontal add-new" id="save-tracking-id">
+					<div class="control-group">
+						<label class="control-label" for="inputTrackingId">Tracking Id</label>
+						<div class="controls">
+							<input type="text" name="inputTrackingId" value="'.$item->tracking_id.'">
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="inputLocale">Locale</label>
+						<div class="controls">
+							<select name="inputLocale">';
+			if ($query2->num_rows() > 0)
 			{
-				case 'add' :
-					$data['title'] = 'Browse Node Id -> Add';
-					$data['page'] = 'backend/browse_node_id_add';
-					$this->load->view('backend/template',$data);
-					break;
-				case 'edit' :
-					if ( ! $id)
-					{
-						$this->session->set_flashdata('msg', '<div class="alert alert-warning flash">Upss, error occured! You must fillin\' the name.</div>');
-						redirect('backend/browse_node_id/');
-					}
-					if ($id == 'save')
-					{
-						$name = $this->input->post('name');
-						$name_ = $this->input->post('name_');
-						if ( empty($name))
-						{
-							$this->session->set_flashdata('msg', '<div class="alert alert-warning flash">Upss, error occured! You must fillin\' the name.</div>');
-							redirect('backend/browse_node_id/edit/'.$name_);
-						}
-						$CA	= $this->input->post('CA');
-						$CN	= $this->input->post('CN');
-						$DE	= $this->input->post('DE');
-						$ES	= $this->input->post('ES');
-						$FR	= $this->input->post('FR');
-						$IT	= $this->input->post('IT');
-						$JP	= $this->input->post('JP');
-						$UK	= $this->input->post('UK');
-						$US = $this->input->post('US');
-						//$name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US
-						$status = $this->m_backend->update_search_index($name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US) ? 'true' : 'false';
-						$msg = ($status) ? '<div class="alert alert-success flash">Successfully updated!</div>' : '<div class="alert alert-warning flash">Upss, error occured!</div>';
-						
-						$this->session->set_flashdata('msg', $msg);
-						redirect('backend/browse_node_id/');
-					}
-					$data['items'] = $this->m_backend->get_search_index($id);
-					$data['title'] = 'Browse Node Id -> Edit';
-					$data['page'] = 'backend/browse_node_id_edit';
-					$this->load->view('backend/template',$data);
-					break;
-				case 'save' :
-					$name = $this->input->post('name');
-					if ( empty($name))
-					{
-						$this->session->set_flashdata('msg', '<div class="alert alert-warning flash">Upss, error occured! You must fillin\' the name.</div>');
-						redirect('backend/browse_node_id/add');
-					}
-					$CA	= $this->input->post('CA');
-					$CN	= $this->input->post('CN');
-					$DE	= $this->input->post('DE');
-					$ES	= $this->input->post('ES');
-					$FR	= $this->input->post('FR');
-					$IT	= $this->input->post('IT');
-					$JP	= $this->input->post('JP');
-					$UK	= $this->input->post('UK');
-					$US = $this->input->post('US');
-					//$name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US
-					$status = $this->m_backend->save_browse_node_id($name, $CA, $CN, $DE, $ES, $FR, $IT, $JP, $UK, $US) ? 'true' : 'false';
-					$msg = ($status) ? '<div class="alert alert-success flash">Successfully saved!</div>' : '<div class="alert alert-warning flash">Upss, error occured!</div>';
+				foreach ($query2->result() as $item2)
+				{
 					
-					$this->session->set_flashdata('msg', $msg);
-					redirect('backend/browse_node_id/add');
-					break;
+					@$option .= ($item->locale == $item2->locale) ? '<option value="'.$item2->locale.'" selected>'.$item2->country.'</option>' : '<option value="'.$item2->locale.'">'.$item2->country.'</option>';
+				}
+				$content .= $option;
 			}
+			$content .= '</select>
+						</div>
+					</div>
+					<p class="ajax-loader">
+						<img src="assets/img/ajax-loader-strip.gif">
+					</p>
+					<div class="form-actions">
+						<button type="submit" class="btn btn-primary btn-login">Save</button>
+					</div>
+				</form>';
 		}
+		$content .='</div>';
+		echo $content;
+	}
+	
+	/**
+	 * Save new tracking id
+	 */	
+	public function save_tracking_id()
+	{
+		$tracking_id = $this->input->post('inputTrackingId');
+		$locale = $this->input->post('inputLocale');
+		if ($this->m_users->save_tracking_id($tracking_id,$locale))
+		{
+			$response->status='true';
+			$response->msg='Succesfully saved!';
+		}
+		else
+		{			
+			$response->status='false';
+			$response->msg='Sorry, I don\'t know what are you talkin\' about :(!';
+		}
+		echo json_encode($response);
+	}
+	
+	/**
+	 * Delete tracking id
+	 */	
+	public function delete_tracking_id()
+	{
+		$id = $this->input->post('id');
+		if ($this->m_users->delete_tracking_id($id))
+		{
+			$response->status='true';
+			$response->msg='Succesfully saved!';
+		}
+		else
+		{			
+			$response->status='false';
+			$response->msg='Sorry, I don\'t know what are you talkin\' about :(!';
+		}
+		echo json_encode($response);
+	}
+	
+	/**
+	 * API Keys Menu Handle
+	 * 
+	 * Group of API Keys menu such as, add, list all, save, and edit
+	 * All this function loader by ajax request
+	 */
+	 
+	/**
+	 * List all api keys that user has
+	 */
+	public function api_keys()
+	{
+		$query = $this->m_users->get_api_key();
+		$content = '<p class="lead">API Keys<a href="#add-api-key" class="btn btn-danger pull-right modal-trigger">Add Key</a></p>';
+		if ($query->num_rows() > 0)
+		{
+			$content .= '<table class="table"><thead><tr><th>No</th><th>Public Key</th><th>Private Key</th><th>Action</th></tr></thead><tbody>';
+			$i =1;
+			foreach ($query->result() as $item)
+			{
+				$content .= '<tr><td>'.$i.'</td><td>'.$item->public_key.'</td><td>'.$item->private_key.'</td><td><a  href="#edit-api-key-'.$item->id.'" class="modal-trigger"><i class="icon icon-pencil"></i></a>&nbsp;&nbsp;<a href="#delete-api-key-'.$item->id.'" class="delete-trigger"><i class="icon icon-remove"></i></a></td></tr>';
+				$i++;
+			}
+			$content .= '</tbody></table>';
+		}
+		echo $content;
+	}
+	/**
+	 * Form to add new API Keys
+	 */
+	public function add_api_key()
+	{
+		$content = '<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon icon-remove"></i></button>
+			<h3 id="form-title">Add New API Key</h3>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal add-new" id="save-api-key">
+					<div class="control-group">
+						<label class="control-label" for="inputPublicKey">Public Key</label>
+						<div class="controls">
+							<input type="text" name="inputPublicKey" placeholder="Public key">
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="inputPrivateKey">Private Key</label>
+						<div class="controls">
+							<input type="text" name="inputPrivateKey" placeholder="Private key" class="input-block-level">
+						</div>
+					</div>
+					<p class="ajax-loader">
+						<img src="assets/img/ajax-loader-60x60.gif" id="ajax-loader-login" >
+					</p>
+					<div class="form-actions">
+						<button type="submit" class="btn btn-primary btn-login">Save</button>
+					</div>
+				</form>
+			</div>';
+		echo $content;
+	}
+	
+	/**
+	 * Form to edit new API Keys
+	 */
+	public function edit_api_key()
+	{
+		$content = '<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon icon-remove"></i></button>
+			<h3 id="form-title">Edit API Key</h3>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal add-new" id="save-api-key">
+					<div class="control-group">
+						<label class="control-label" for="inputPublicKey">Public Key</label>
+						<div class="controls">
+							<input type="text" name="inputPublicKey" placeholder="Public key">
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="inputPrivateKey">Private Key</label>
+						<div class="controls">
+							<input type="text" name="inputPrivateKey" placeholder="Private key" class="input-block-level">
+						</div>
+					</div>
+					<p class="ajax-loader">
+						<img src="assets/img/ajax-loader-60x60.gif" id="ajax-loader-login" >
+					</p>
+					<div class="form-actions">
+						<button type="submit" class="btn btn-primary btn-login">Save</button>
+					</div>
+				</form>
+			</div>';
+		echo $content;
+	}
+	
+	/**
+	 * Save new api key
+	 */	
+	public function save_api_key()
+	{
+		$public_key = $this->input->post('inputPublicKey');
+		$private_key = $this->input->post('inputPrivateKey');
+		if ($this->m_users->save_api_key($public_key,$private_key))
+		{
+			$response->status='true';
+			$response->msg='New API Keys Succesfully saved!';
+		}
+		else
+		{			
+			$response->status='false';
+			$response->msg='Sorry, I don\'t know what are you talkin\' about :(!';
+		}
+		echo json_encode($response);
+	}
+	
+	/**
+	 * Delete api key
+	 */	
+	public function delete_api_key()
+	{
+		$id = $this->input->post('id');
+		if ($this->m_users->delete_api_key($id))
+		{
+			$response->status='true';
+			$response->msg='New API Keys Succesfully saved!';
+		}
+		else
+		{			
+			$response->status='false';
+			$response->msg='Sorry, I don\'t know what are you talkin\' about :(!';
+		}
+		echo json_encode($response);
 	}
 }
 
-/* End of file backend.php */
-/* Location: ./amz/controller/backend.php */
+/* End of file users.php */
+/* Location: ./amz/controller/users.php */

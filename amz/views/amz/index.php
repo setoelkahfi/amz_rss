@@ -7,7 +7,7 @@
 		<div class="span12">
 			<input id="rss-link" name="inputRss" class="input-xxlarge" type="text" placeholder="Your RSS link service">	<button type="submit" class="btn btn-primary btn-get-rss">Get it!</button>
 					<div class="row-fluid">
-						<div class="span6 offset3 ajax-loader">
+						<div class="span6 offset3 ajax-loader" style="display:none;">
 							<img src="assets/img/ajax-loader-60x60.gif" id="ajax-loader">
 						</div>
 					</div>
@@ -34,4 +34,3 @@
 				</div>
 			</div>
 		</div>
-		<div id="push"></div>

@@ -1,6 +1,6 @@
 <?php if ($this->session->flashdata('msg')) echo $this->session->flashdata('msg'); ?>
 	<?php foreach ($items->result() as $item) : ?>
-	<p class="lead"><?php echo $item->user_name; ?></p>
+	<p class="lead"><?php echo $item->user_name; ?><a href="<?php echo base_url().'users'; ?>" class="btn btn-danger pull-right">Manage My Data</a></p>
 	<div class="row-fluid">
 		<div class="span12">
 		</div>
@@ -21,4 +21,3 @@
 	</div>
 	<?php endforeach; ?>
 </div>
-<div id="push"></div>

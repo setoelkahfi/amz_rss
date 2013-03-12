@@ -1,0 +1,102 @@
+/* Sticky footer styles
+-------------------------------------------------- */
+html, body {
+    height: 100%;
+	/* The html and body elements cannot have any padding or margin. */
+}
+
+/* Wrapper for page content to push down footer */
+#wrap {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    /* Negative indent footer by it's height */
+    margin: 0 auto -160px;
+}
+
+/* Set the fixed height of the footer here */
+#push{
+    height: 160px;
+}
+#footer {
+	color: #999999;
+	height: 160px;
+    background-color: #333333;
+	position: static;
+}
+/* Lastly, apply responsive CSS fixes as necessary */
+@media (max-width: 767px) {
+    #footer {
+        margin-left: -20px;
+        margin-right: -20px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+/* Custom page CSS
+-------------------------------------------------- */
+.container {
+    width: auto;
+    max-width: 900px;
+}
+.container .credit {
+    margin: 20px 0;
+}
+/* We're not use radius */
+select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input, .btn, .well, .nav-pills > li > a , .alert {
+	border-bottom-left-radius:0;
+	border-bottom-right-radius:0;
+	border-top-left-radius:0;
+	border-top-right-radius:0;
+}
+.alert {
+	text-align: center;
+}
+.btn { 
+  vertical-align:top;
+}
+.ajax-loader{
+    position: relative;
+	margin-top: 5%;
+}
+.ajax-loader-modal img{
+	margin-top: 5%;
+} 
+.ajax-loader img {
+	position: absolute;
+    left: 50%;
+    top: 25%;
+    margin-left: -32px; /* -1 * image width / 2 */
+    margin-top: -32px;  /* -1 * image height / 2 */
+    display: block;
+}
+.input-xxlarge {
+	width: 595px;
+}
+.well p {
+	text-align: justify;
+}
+
+/*
+ * Campaign style
+ */
+.table-campaign tbody tr td:nth-child(2):hover {
+	cursor: pointer;
+}
+.row-sub-campaign {
+	display: none;
+}
+.row-sub-campaign td{
+	border: 3px solid red;
+}
+#footer .credit {
+	font-size: 12px;
+	margin:0;
+}
+/**
+ * Users management
+ */
+.tab-content {
+	display: none;
+}

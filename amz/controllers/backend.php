@@ -16,6 +16,11 @@ class backend extends CI_Controller {
 	public function __construct()
 	{
 		parent::__construct();
+		if ( ! $this->session->userdata('user_name') || $this->session->userdata('user_level') != 'admin')
+		{
+			$this->session->set_flashdata('msg','<div class="alert alert-error flash">You must login or register first to use this service</div>');
+			redirect('/users/login/');
+		}
 		$this->load->model('m_backend');
 	}
 	
@@ -25,20 +30,19 @@ class backend extends CI_Controller {
 	 */
 	public function index()
 	{
-		$data['title'] = 'Administration stuff';
+		$data['title'] = 'Administration';
 		$data['page'] = 'backend/index';
-		$this->load->view('backend/template',$data);
+		$this->load->view('template');
 	}
 	
 	/**
 	 * Profil page admin
 	 *
 	 */
-	public function profile()
+	public function home()
 	{
-		$data['title'] = 'My Profile';
-		$data['page'] = 'backend/profile';
-		$this->load->view('backend/template',$data);
+		$content = 'Welcome, this is an administrator area where you can add data to this apps.';
+		echo $content;
 	}
 	/**
 	 * Add new search index
@@ -53,7 +57,7 @@ class backend extends CI_Controller {
 			$data['items'] = $this->m_backend->get_search_index();
 			$data['title'] = 'Search Index';
 			$data['page'] = 'backend/search_index';
-			$this->load->view('backend/template',$data);
+			$this->load->view('backend/search_index',$data);
 		}
 		else
 		{
@@ -63,7 +67,7 @@ class backend extends CI_Controller {
 				case 'add' :
 					$data['title'] = 'Search Index -> Add';
 					$data['page'] = 'backend/search_index_add';
-					$this->load->view('backend/template',$data);
+					$this->load->view('template',$data);
 					break;
 				case 'edit' :
 					if ( ! $id)
@@ -99,7 +103,7 @@ class backend extends CI_Controller {
 					$data['items'] = $this->m_backend->get_search_index($id);
 					$data['title'] = 'Search Index -> Edit';
 					$data['page'] = 'backend/search_index_edit';
-					$this->load->view('backend/template',$data);
+					$this->load->view('template',$data);
 					break;
 				case 'save' :
 					$name = $this->input->post('name');
@@ -134,14 +138,13 @@ class backend extends CI_Controller {
 	 * @param string action to be taken
 	 * @param optional search index value to be edited
 	 */
-	public function browse_node_id($action = NULL, $id = NULL)
+	public function browse_node($action = NULL, $id = NULL)
 	{
 		if ($action == NULL)
 		{
 			$data['items'] = $this->m_backend->get_browse_node_id();
 			$data['title'] = 'Browse Node Id';
-			$data['page'] = 'backend/browse_node_id';
-			$this->load->view('backend/template',$data);
+			$this->load->view('backend/browse_node_id',$data);
 		}
 		else
 		{
@@ -151,7 +154,7 @@ class backend extends CI_Controller {
 				case 'add' :
 					$data['title'] = 'Browse Node Id -> Add';
 					$data['page'] = 'backend/browse_node_id_add';
-					$this->load->view('backend/template',$data);
+					$this->load->view('template',$data);
 					break;
 				case 'edit' :
 					if ( ! $id)
@@ -187,7 +190,7 @@ class backend extends CI_Controller {
 					$data['items'] = $this->m_backend->get_search_index($id);
 					$data['title'] = 'Browse Node Id -> Edit';
 					$data['page'] = 'backend/browse_node_id_edit';
-					$this->load->view('backend/template',$data);
+					$this->load->view('template',$data);
 					break;
 				case 'save' :
 					$name = $this->input->post('name');
@@ -228,8 +231,7 @@ class backend extends CI_Controller {
 		{
 			$data['items'] = $this->m_backend->get_users();
 			$data['title'] = 'Manage Users';
-			$data['page'] = 'backend/users';
-			$this->load->view('backend/template',$data);
+			$this->load->view('backend/users',$data);
 		}
 		else
 		{
@@ -239,7 +241,7 @@ class backend extends CI_Controller {
 				case 'add' :
 					$data['title'] = 'Browse Node Id -> Add';
 					$data['page'] = 'backend/browse_node_id_add';
-					$this->load->view('backend/template',$data);
+					$this->load->view('template',$data);
 					break;
 				case 'edit' :
 					if ( ! $id)
@@ -275,7 +277,7 @@ class backend extends CI_Controller {
 					$data['items'] = $this->m_backend->get_search_index($id);
 					$data['title'] = 'Browse Node Id -> Edit';
 					$data['page'] = 'backend/browse_node_id_edit';
-					$this->load->view('backend/template',$data);
+					$this->load->view('template',$data);
 					break;
 				case 'save' :
 					$name = $this->input->post('name');
@@ -302,20 +304,6 @@ class backend extends CI_Controller {
 					break;
 			}
 		}
-	}
-	
-	/**
-	 * Logout from backend
-	 *
-	 */
-	public function logout()
-	{
-		$array = array(
-			'username' => '',
-		);
-		$this->session->unset_userdata($array);
-		$this->session->set_flashdata('msg','<div class="alert alert-success flash">Youre now log-out!</div>');
-		redirect('/');
 	}
 }
 

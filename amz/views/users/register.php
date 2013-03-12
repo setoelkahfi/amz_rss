@@ -39,7 +39,7 @@
 $('#form-register').submit(function(e) {
 	//alert('test');
 	$('#ajax-loader-register').show();
-	$.post('ajax/register.php', $(this).serialize(), function(data) {
+	$.post('users/register-do/', $(this).serialize(), function(data) {
 		data = JSON.parse(data);
 		status = JSON.stringify(data['status']);
 		if (status == 'false') {
