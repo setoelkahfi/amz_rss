@@ -16,21 +16,6 @@
 							
 						</div>
 					</div>
-				</div>
-			</div>
-			</form>
-			<div class="row-fluid">
-				<div class="span4 well">
-					<h4>Robust Apps.</h4>
-					<p>This is the ready-use application for you who wants to be able to read an rss feed from your favorite website.</p> 
-				</div>
-				<div class="span4 well">
-					<h4>Free Srvc.</h4>
-					<p>This is the ready-use application for you who wants to be able to read an rss feed from your favorite website.</p> 
-				</div>
-				<div class="span4 well">
-					<h4>Yet Smpl.</h4>
-					<p>This is the ready-use application for you who wants to be able to read an rss feed from your favorite website.</p> 
-				</div>
-			</div>
 		</div>
+	</div>
+</form>

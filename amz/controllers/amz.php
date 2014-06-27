@@ -20,7 +20,7 @@ class Amz extends CI_Controller {
 	 */
 	public function index()
 	{
-		//$this->output->enable_profiler(true);
+		$this->output->enable_profiler(true);
 		$data['title'] = 'Read Amazon (or another) RSS realtime on your e-mail!';
 		$data['page'] = 'amz/index';
 		$this->load->view('template',$data);

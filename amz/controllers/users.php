@@ -20,6 +20,14 @@ class Users extends CI_Controller {
 		parent::__construct();
 		
 		$this->load->model('m_users');
+		$this->output->enable_profiler(true);		
+		parse_str( $_SERVER['QUERY_STRING'], $_REQUEST );
+		$this->config->load('facebook');
+		$config = array(
+					   'appId' => $this->config->item('appId'),
+					   'secret' => $this->config->item('secret'),
+		);
+		$this->load->library('facebook/facebook_api', $config);
 	}
 	
 	/**
@@ -56,6 +64,40 @@ class Users extends CI_Controller {
 		}
 	}
 	
+	public function fblogout()
+	{
+		$this->session->sess_destroy();
+        header('Location: /amazon/');
+    }
+	
+    public function fblogin()
+	{
+        $user = $this->facebook_api->getUser();
+		
+		echo 'Access token is '.$this->facebook_api->getAccessToken().'</br>';
+        if($user){
+            try {
+                $user_profile = $this->facebook_api->api('/me');
+                $params = array('next' => base_url().'users/fblogout');
+                $ses_user = array(
+					'User'=>$user_profile,
+                    'logout' =>$this->facebook_api->getLogoutUrl($params)
+                );
+                $this->session->set_userdata($ses_user);
+				echo '<pre>'.htmlspecialchars(print_r($user_profile, true)).'</pre>';
+               // header('Location: '.base_url());
+            } catch(FacebookApiException $e){
+                error_log($e);
+				echo '<pre>'.htmlspecialchars(print_r($e, true)).'</pre>';
+                $user = NULL;
+            }       
+        }
+		else
+		{
+			echo 'cant get';
+		}
+    }
+	
 	/**
 	 * Logout user
 	 *
@@ -83,6 +125,7 @@ class Users extends CI_Controller {
 		{
 			redirect('/users/');
 		}
+		$data['fb_login'] = $this->facebook_api->getLoginUrl(array('scope'=>'email,read_stream,publish_stream,user_birthday,user_location,user_work_history,user_hometown,user_photos','redirect_uri' => base_url().'facebook'));
 		$data['page'] = 'users/login';
 		$this->load->view('template',$data);
 	}
