@@ -3,3 +3,5 @@
 !/README.txt
 *.sql
 *.zip
+cache/
+amz/cache/
